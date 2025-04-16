@@ -1,0 +1,121 @@
+@import url('./variables.css');
+
+.skillsContainer {
+  margin: var(--space-xl) 0;
+  color: var(--color-starlight);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  margin-bottom: var(--space-md);
+  color: var(--color-starlight);
+  position: relative;
+  display: inline-block;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 1px;
+  background-color: var(--color-nebula-accent);
+}
+
+.skillsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: flex-start;
+}
+
+.skillItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+  margin-bottom: var(--space-sm);
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.skillItem:hover {
+  transform: translateY(-5px);
+}
+
+.iconContainer {
+  position: relative;
+  margin-bottom: var(--space-xs);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skillIcon {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+  z-index: 2;
+  position: relative;
+}
+
+.orbitRing {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  animation: rotate 8s linear infinite;
+}
+
+.skillItem:nth-child(odd) .orbitRing {
+  animation-direction: reverse;
+}
+
+.skillItem:hover .orbitRing {
+  border-color: rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.skillName {
+  font-size: var(--font-size-small);
+  color: var(--color-stardust);
+  text-align: center;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.skillItem:hover .skillName {
+  opacity: 1;
+  color: var(--color-starlight);
+}
+
+/* Animation for orbital rings */
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Different orbit speeds */
+.skillItem:nth-child(3n) .orbitRing {
+  animation-duration: 10s;
+}
+
+.skillItem:nth-child(3n+1) .orbitRing {
+  animation-duration: 12s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .skillsGrid {
+    justify-content: center;
+  }
+}

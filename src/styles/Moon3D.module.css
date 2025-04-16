@@ -14,7 +14,7 @@
 
 .projectCard {
   position: absolute;
-  background: var(--color-cosmic-gray);
+  background: rgba(20, 20, 30, 0.85);
   color: var(--color-starlight);
   border-radius: 8px;
   padding: var(--space-md);
@@ -22,13 +22,13 @@
   max-width: 300px;
   right: 20px;
   bottom: 20px;
-  box-shadow: var(--shadow-cosmic);
+  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.2);
   opacity: 0;
   transform: translateY(20px);
   animation: fadeIn 0.3s forwards;
   z-index: 10;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.2);
 }
 
 @keyframes fadeIn {
@@ -43,6 +43,7 @@
   margin-bottom: var(--space-xs);
   font-size: var(--font-size-subtitle);
   color: var(--color-starlight);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
 }
 
 .projectCard p {
@@ -56,14 +57,33 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-bottom: var(--space-sm);
 }
 
 .tag {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 255, 255, 0.1);
   color: var(--color-nebula-accent);
   padding: 3px 8px;
   border-radius: 4px;
   font-size: var(--font-size-small);
+}
+
+.projectLink {
+  color: var(--color-nebula-accent);
+  font-weight: bold;
+  font-size: var(--font-size-small);
+  text-align: center;
+  margin-top: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(0, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.projectLink:hover {
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
 /* Responsive adjustments */

@@ -76,11 +76,12 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     // Create project markers
     const projectMarkers = [];
     const createProjectMarker = (position, project, index) => {
-      const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+      // Make markers larger and more visible
+      const markerGeometry = new THREE.SphereGeometry(0.2, 16, 16);
       const markerMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xffffff,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9
       });
       
       const marker = new THREE.Mesh(markerGeometry, markerMaterial);
@@ -88,33 +89,62 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       marker.userData = { project, index };
       scene.add(marker);
       
-      // Create pulsing effect
-      const pulse = new THREE.PointLight(0xffffff, 0.5, 0.5);
+      // Create stronger pulsing effect
+      const pulse = new THREE.PointLight(0xffffff, 1, 1);
       pulse.position.copy(position);
       scene.add(pulse);
       
-      // Store references to the markers
-      projectMarkers.push({ marker, pulse, position });
+      // Add a glow effect
+      const glowGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+      const glowMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.BackSide
+      });
+      const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+      glow.position.copy(position);
+      scene.add(glow);
       
-      return { marker, pulse };
+      // Store references to the markers
+      projectMarkers.push({ marker, pulse, glow, position });
+      
+      return { marker, pulse, glow };
     };
     
-    // Position markers around the moon
+    // Position markers prominently on the front hemisphere of the moon
     if (projects.length > 0) {
-      const radius = 2.8; // Slightly larger than moon radius
-      projects.forEach((project, index) => {
-        // Calculate position on moon surface
-        const phi = Math.acos(-1 + (2 * index) / projects.length);
-        const theta = Math.sqrt(projects.length * Math.PI) * phi;
-        
-        const position = new THREE.Vector3(
-          radius * Math.sin(phi) * Math.cos(theta),
-          radius * Math.sin(phi) * Math.sin(theta),
-          radius * Math.cos(phi)
-        );
-        
-        createProjectMarker(position, project, index);
+      // Calculate positions that favor the front of the moon
+      const positions = [
+        new THREE.Vector3(0, 0.8, 2.4),     // Top center (directly facing)
+        new THREE.Vector3(0, -0.8, 2.4),    // Bottom center (directly facing)
+        new THREE.Vector3(1.9, 0.8, 1.8),   // Top right
+        new THREE.Vector3(-1.9, -0.8, 1.8)  // Bottom left
+      ];
+      
+      // Use predefined positions for up to 4 projects
+      projects.slice(0, 4).forEach((project, index) => {
+        createProjectMarker(positions[index], project, index);
       });
+      
+      // If there are more than 4 projects, position them evenly
+      if (projects.length > 4) {
+        projects.slice(4).forEach((project, index) => {
+          const i = index + 4; // Offset by the predefined positions
+          
+          // Place additional markers still somewhat visible from front
+          const phi = Math.acos(-0.5 + (i * 0.75) / projects.length);
+          const theta = Math.sqrt(projects.length * Math.PI) * phi;
+          
+          const position = new THREE.Vector3(
+            2.6 * Math.sin(phi) * Math.cos(theta),
+            2.6 * Math.sin(phi) * Math.sin(theta),
+            2.6 * Math.cos(phi) * 0.7 // Push toward front
+          );
+          
+          createProjectMarker(position, project, i);
+        });
+      }
     }
     
     // Store for raycasting
@@ -151,9 +181,26 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         const intersectedObject = intersects[0].object;
         setActiveProject(intersectedObject.userData.project);
         document.body.style.cursor = 'pointer';
+        
+        // Highlight the selected marker
+        projectMarkers.forEach(item => {
+          if (item.marker === intersectedObject) {
+            item.marker.material.color.set(0x00ffff);
+            item.glow.material.color.set(0x00ffff);
+          } else {
+            item.marker.material.color.set(0xffffff);
+            item.glow.material.color.set(0xffffff);
+          }
+        });
       } else {
         setActiveProject(null);
         document.body.style.cursor = 'default';
+        
+        // Reset all markers
+        projectMarkers.forEach(item => {
+          item.marker.material.color.set(0xffffff);
+          item.glow.material.color.set(0xffffff);
+        });
       }
     };
     
@@ -180,11 +227,17 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       projectMarkers.forEach((item, index) => {
         // Make markers always face the camera
         item.marker.lookAt(camera.position);
+        if (item.glow) item.glow.lookAt(camera.position);
         
         // Pulse effect
         const time = Date.now() * 0.001;
         const pulse = Math.sin(time + index) * 0.5 + 0.5;
-        item.pulse.intensity = pulse * 0.8;
+        item.pulse.intensity = pulse * 1.5; // Stronger pulse
+        
+        // Scale the glow with the pulse
+        if (item.glow) {
+          item.glow.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
+        }
       });
       
       renderer.render(scene, camera);
@@ -211,9 +264,13 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       moonTexture.dispose();
       
       // Dispose of marker resources
-      projectMarkers.forEach(({ marker }) => {
+      projectMarkers.forEach(({ marker, glow }) => {
         marker.geometry.dispose();
         marker.material.dispose();
+        if (glow) {
+          glow.geometry.dispose();
+          glow.material.dispose();
+        }
       });
       
       renderer.dispose();
@@ -234,6 +291,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
               <span key={index} className={styles.tag}>{tag}</span>
             ))}
           </div>
+          <div className={styles.projectLink}>Click to explore</div>
         </div>
       )}
     </div>

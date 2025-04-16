@@ -2,7 +2,7 @@ import React from 'react';
 import styles from '../styles/ProjectsSection.module.css';
 import Moon3D from './Moon3D';
 import About from './About';
-// import Skills from './Skills';
+import SkillsLogos from './SkillsLogos';
 
 const projects = [
   {
@@ -33,15 +33,12 @@ const projects = [
 
 const ProjectsSection = () => (
   <section className={styles.projects} id="projects">
+    <div className={styles.starfield}></div>
     <div className={styles.container}>
       <div className={styles.sectionLayout}>
         <div className={styles.content}>
           <About />
-          {/* Skills component commented out as requested */}
-          {/* <Skills /> */}
-          
-          <h2 className={styles.heading}>Projects</h2>
-          {/* Project grid removed - now displayed on the moon */}
+          <SkillsLogos />
         </div>
         <div className={styles.moonContainer}>
           <Moon3D size={400} projects={projects} />
