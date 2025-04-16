@@ -33,7 +33,6 @@ const projects = [
 
 const ProjectsSection = () => (
   <section className={styles.projects} id="projects">
-    <div className={styles.starfield}></div>
     <div className={styles.container}>
       <div className={styles.sectionLayout}>
         <div className={styles.content}>

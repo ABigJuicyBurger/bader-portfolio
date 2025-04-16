@@ -9,9 +9,9 @@
   overflow: hidden;
 }
 
-/* Enhanced starfield effect */
-.starfield {
-  position: fixed;
+/* Project-specific star field effect */
+.projectStars {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -37,7 +37,7 @@
 }
 
 /* Add twinkling animation to stars */
-.starfield::before {
+.projectStars::before {
   content: '';
   position: absolute;
   top: 0;
@@ -67,9 +67,9 @@
   }
 }
 
-/* Dim the original star field to avoid duplication */
+/* Original star background - now hidden */
 .projects::before {
-  opacity: 0.1;
+  content: none;
 }
 
 .container {
@@ -172,7 +172,7 @@
 }
 
 /* Shooting star animation */
-.starfield::after {
+.projectStars::after {
   content: '';
   position: absolute;
   top: 0;
