@@ -9,7 +9,7 @@
   color: #fff;
   position: relative;
   overflow-x: hidden;
-  transition: opacity 0.4s ease-out;
+  transition: opacity 0.4s ease, transform 0.5s ease;
 }
 
 .contentContainer {
@@ -19,8 +19,6 @@
   justify-content: center;
   gap: 2rem;
   margin-bottom: 2rem;
-  position: relative; /* Needed for GSAP positioning */
-  z-index: 2; /* Above the header background */
 }
 
 .moon {
@@ -29,19 +27,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.4s ease-out;
-  position: relative; /* Needed for GSAP positioning */
-  z-index: 10; /* High z-index to stay above other elements */
-  will-change: transform; /* Optimize for animations */
+  transition: transform 0.4s ease;
 }
 
 .textContent {
   display: flex;
   flex-direction: column;
-  transition: all 0.4s ease-out;
-  position: relative; /* Needed for GSAP positioning */
-  z-index: 10; /* High z-index to stay above other elements */
-  will-change: transform; /* Optimize for animations */
+  transition: transform 0.4s ease;
 }
 
 .name {
@@ -49,15 +41,13 @@
   font-weight: bold;
   letter-spacing: 2px;
   margin-bottom: 1rem;
-  transition: all 0.4s ease-out;
-  white-space: nowrap; /* Prevent text wrapping during animation */
-  will-change: transform; /* Optimize for animations */
+  transition: transform 0.4s ease;
 }
 
 .tagline {
   font-size: 1.2rem;
   color: #c0caf5;
-  transition: all 0.4s ease-out;
+  transition: opacity 0.4s ease;
 }
 
 .scrollHint {
@@ -65,49 +55,33 @@
   color: #b8c1ec;
   animation: bounce 1.5s infinite;
   margin-top: 1rem;
-  transition: opacity 0.4s ease-out;
+  transition: opacity 0.4s ease;
 }
 
-/* New header background that fades in during scroll */
-.headerBackground {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background: rgba(35, 41, 70, 0.95);
-  backdrop-filter: blur(5px);
-  z-index: 5; /* Between the landing and the animated elements */
-  opacity: 0; /* Start invisible */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
-  will-change: opacity; /* Optimize for animations */
-}
-
+/* Header styling that appears when scrolling */
 .headerVersion {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
   background: rgba(35, 41, 70, 0.95);
   backdrop-filter: blur(5px);
   z-index: 1000;
   transform: translateY(-100%);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   opacity: 0;
-  transition: all 0.35s cubic-bezier(0.33, 1, 0.68, 1);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 
 .headerVersion.visible {
-  transform: translateY(0) !important;
-  opacity: 1 !important;
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .headerContent {
   display: flex;
   align-items: center;
-  height: 100%;
-  padding: 0 2rem;
+  padding: 0.8rem 2rem;
 }
 
 .moonSmall {
@@ -116,7 +90,7 @@
   margin-right: 1rem;
   display: flex;
   align-items: center;
-  transition: all 0.35s ease;
+  transition: transform 0.4s ease;
 }
 
 .headerName {
@@ -124,7 +98,7 @@
   font-weight: 600;
   margin: 0;
   color: white;
-  transition: all 0.35s ease;
+  transition: transform 0.4s ease;
 }
 
 @keyframes bounce {

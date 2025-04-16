@@ -5,19 +5,45 @@ import ContactSection from './components/ContactSection';
 import './App.css';
 
 function App() {
+  const [showHeader, setShowHeader] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const landingRef = useRef(null);
 
+  // Handle header visibility with Intersection Observer
+  useEffect(() => {
+    const observedElement = landingRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // When landing section goes out of view, show header
+        if (entries[0]) {
+          setShowHeader(!entries[0].isIntersecting);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "-20% 0px 0px 0px", // Trigger when 20% of the element is out of view
+        threshold: 0,
+      }
+    );
+    
+    if (observedElement) {
+      observer.observe(observedElement);
+    }
+    
+    return () => {
+      if (observedElement) observer.unobserve(observedElement);
+    };
+  }, []);
+
+  // Handle scroll progress for animations
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       const progress = Math.min(Math.max(scrollPosition / 300, 0), 1);
       setScrollProgress(progress);
     };
-    
     window.addEventListener('scroll', handleScroll);
     handleScroll();
-    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -25,6 +51,7 @@ function App() {
     <div className="app-container">
       <LandingSection 
         fadeOut={scrollProgress} 
+        showHeader={showHeader} 
         landingRef={landingRef} 
       />
       <ProjectsSection />
