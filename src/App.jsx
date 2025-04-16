@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import LandingSection from './components/LandingSection';
 import ProjectsSection from './components/ProjectsSection';
 import ContactSection from './components/ContactSection';
-import BackgroundStars from './components/BackgroundStars';
+import StarBackground from './components/StarBackground';
 import './App.css';
 
 function App() {
@@ -51,8 +51,8 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Subtle background stars that won't interfere with header */}
-      <BackgroundStars />
+      {/* Highly visible star background with inline styles */}
+      <StarBackground />
       
       <LandingSection 
         fadeOut={scrollProgress} 
