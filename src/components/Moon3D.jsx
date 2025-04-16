@@ -4,7 +4,6 @@ import styles from '../styles/Moon3D.module.css';
 
 const Moon3D = ({ size = 350, projects = [] }) => {
   const mountRef = useRef(null);
-  const [hoveredProject, setHoveredProject] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const projectMarkersRef = useRef([]);
   const animationRef = useRef(null);
@@ -121,38 +120,58 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     
     // Position markers prominently on the front hemisphere of the moon
     if (projects.length > 0) {
-      // Calculate positions that distribute markers around the full moon
-      // Ensuring visibility at all rotation angles
-      const positions = [
-        new THREE.Vector3(0, 0.8, 2.4),     // Front top
-        new THREE.Vector3(2.4, 0.8, 0),     // Right top (90°)
-        new THREE.Vector3(0, 0.8, -2.4),    // Back top (180°)
-        new THREE.Vector3(-2.4, 0.8, 0),    // Left top (270°)
-      ];
+      // Create randomized positions around the moon
+      const createRandomPositions = (count) => {
+        const positions = [];
+        
+        // Ensure we have at least one marker in each quadrant for visibility
+        const quadrants = [
+          { minPhi: 0.1, maxPhi: 0.7, minTheta: -0.7, maxTheta: 0.7 },    // Front (0°)
+          { minPhi: 0.1, maxPhi: 0.7, minTheta: 0.7, maxTheta: 2.1 },     // Right (90°)
+          { minPhi: 0.1, maxPhi: 0.7, minTheta: 2.1, maxTheta: 3.5 },     // Back (180°)
+          { minPhi: 0.1, maxPhi: 0.7, minTheta: 3.5, maxTheta: 5.0 }      // Left (270°)
+        ];
+        
+        // Place one marker in each quadrant first
+        quadrants.forEach((quadrant, i) => {
+          if (i < count) {
+            // Random position within the quadrant
+            const phi = Math.PI * (quadrant.minPhi + Math.random() * (quadrant.maxPhi - quadrant.minPhi));
+            const theta = Math.PI * (quadrant.minTheta + Math.random() * (quadrant.maxTheta - quadrant.minTheta));
+            
+            // Calculate position using spherical coordinates
+            const radius = 2.5; // Moon radius
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta) * (Math.random() * 0.6 - 0.3); // Random Y offset
+            const z = radius * Math.cos(phi);
+            
+            positions.push(new THREE.Vector3(x, y, z));
+          }
+        });
+        
+        // If we need more markers, add them randomly
+        for (let i = quadrants.length; i < count; i++) {
+          const phi = Math.random() * Math.PI; // 0 to PI
+          const theta = Math.random() * Math.PI * 2; // 0 to 2PI
+          
+          const radius = 2.5; // Moon radius
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.sin(phi) * Math.sin(theta) * (Math.random() * 0.8 - 0.4); // Random Y variation
+          const z = radius * Math.cos(phi);
+          
+          positions.push(new THREE.Vector3(x, y, z));
+        }
+        
+        return positions;
+      };
       
-      // Use predefined positions for up to 4 projects
-      projects.slice(0, 4).forEach((project, index) => {
+      // Generate random positions for all projects
+      const positions = createRandomPositions(projects.length);
+      
+      // Create markers for all projects
+      projects.forEach((project, index) => {
         createProjectMarker(positions[index], project, index);
       });
-      
-      // If there are more than 4 projects, position them evenly
-      if (projects.length > 4) {
-        projects.slice(4).forEach((project, index) => {
-          const i = index + 4; // Offset by the predefined positions
-          
-          // Place additional markers still somewhat visible from front
-          const phi = Math.acos(-0.5 + (i * 0.75) / projects.length);
-          const theta = Math.sqrt(projects.length * Math.PI) * phi;
-          
-          const position = new THREE.Vector3(
-            2.6 * Math.sin(phi) * Math.cos(theta),
-            2.6 * Math.sin(phi) * Math.sin(theta),
-            2.6 * Math.cos(phi) * 0.7 // Push toward front
-          );
-          
-          createProjectMarker(position, project, i);
-        });
-      }
     }
     
     // Store for raycasting
@@ -187,8 +206,6 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       
       if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
-        const project = intersectedObject.userData.project;
-        setHoveredProject(project);
         document.body.style.cursor = 'pointer';
         
         // Highlight the selected marker
@@ -202,7 +219,6 @@ const Moon3D = ({ size = 350, projects = [] }) => {
           }
         });
       } else {
-        setHoveredProject(null);
         document.body.style.cursor = 'default';
         
         // Reset all markers
