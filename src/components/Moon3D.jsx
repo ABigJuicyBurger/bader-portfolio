@@ -73,6 +73,11 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     const moon = new THREE.Mesh(geometry, material);
     scene.add(moon);
     
+    // Create moon group to attach markers to so they rotate with the moon
+    const moonGroup = new THREE.Group();
+    moonGroup.add(moon);
+    scene.add(moonGroup);
+    
     // Create project markers
     const projectMarkers = [];
     const createProjectMarker = (position, project, index) => {
@@ -87,14 +92,14 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       const marker = new THREE.Mesh(markerGeometry, markerMaterial);
       marker.position.copy(position);
       marker.userData = { project, index };
-      scene.add(marker);
+      moonGroup.add(marker); // Attach to moonGroup so it rotates with the moon
       
-      // Create stronger pulsing effect
+      // Create a separate point light for the glow effect that doesn't rotate with the moon
       const pulse = new THREE.PointLight(0xffffff, 1, 1);
       pulse.position.copy(position);
       scene.add(pulse);
       
-      // Add a glow effect
+      // Create a glow effect that rotates with the moon
       const glowGeometry = new THREE.SphereGeometry(0.25, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
@@ -104,10 +109,10 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       });
       const glow = new THREE.Mesh(glowGeometry, glowMaterial);
       glow.position.copy(position);
-      scene.add(glow);
+      moonGroup.add(glow); // Attach to moonGroup
       
       // Store references to the markers
-      projectMarkers.push({ marker, pulse, glow, position });
+      projectMarkers.push({ marker, pulse, glow, position, originalPosition: position.clone() });
       
       return { marker, pulse, glow };
     };
@@ -220,14 +225,17 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     const animate = () => {
       animationFrame = requestAnimationFrame(animate);
       
-      // Rotate the moon slowly
-      moon.rotation.y += 0.003;
+      // Rotate the moon group (moon and attached markers)
+      moonGroup.rotation.y += 0.003;
       
-      // Update markers to face camera and pulse
+      // Update light positions and pulse effects
       projectMarkers.forEach((item, index) => {
-        // Make markers always face the camera
-        item.marker.lookAt(camera.position);
-        if (item.glow) item.glow.lookAt(camera.position);
+        // Calculate current world position of the marker after rotation
+        const worldPosition = new THREE.Vector3();
+        item.marker.getWorldPosition(worldPosition);
+        
+        // Update the pulse light position to match the marker's current position
+        item.pulse.position.copy(worldPosition);
         
         // Pulse effect
         const time = Date.now() * 0.001;

@@ -44,8 +44,13 @@ const SkillsLogos = () => {
       category: 'tools'
     },
     {
-      name: 'AWS',
-      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg',
+      name: 'Vercel',
+      icon: 'https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.png',
+      category: 'cloud'
+    },
+    {
+      name: 'Netlify',
+      icon: 'https://www.netlify.com/v3/img/components/logomark.png',
       category: 'cloud'
     }
   ];
