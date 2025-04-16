@@ -12,23 +12,24 @@ function App() {
   // Handle header visibility with Intersection Observer
   useEffect(() => {
     const observedElement = landingRef.current;
+    
+    if (!observedElement) return;
+    
     const observer = new IntersectionObserver(
       (entries) => {
         // When landing section goes out of view, show header
         if (entries[0]) {
           setShowHeader(!entries[0].isIntersecting);
+          console.log("Header visibility changed:", !entries[0].isIntersecting);
         }
       },
       {
         root: null,
-        rootMargin: "-20% 0px 0px 0px", // Trigger when 20% of the element is out of view
-        threshold: 0,
+        threshold: 0.1, // Header appears when 90% of the landing section is out of view
       }
     );
     
-    if (observedElement) {
-      observer.observe(observedElement);
-    }
+    observer.observe(observedElement);
     
     return () => {
       if (observedElement) observer.unobserve(observedElement);
