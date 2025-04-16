@@ -121,12 +121,13 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     
     // Position markers prominently on the front hemisphere of the moon
     if (projects.length > 0) {
-      // Calculate positions that favor the front of the moon
+      // Calculate positions that distribute markers around the full moon
+      // Ensuring visibility at all rotation angles
       const positions = [
-        new THREE.Vector3(0, 0.8, 2.4),     // Top center (directly facing)
-        new THREE.Vector3(0, -0.8, 2.4),    // Bottom center (directly facing)
-        new THREE.Vector3(1.9, 0.8, 1.8),   // Top right
-        new THREE.Vector3(-1.9, -0.8, 1.8)  // Bottom left
+        new THREE.Vector3(0, 0.8, 2.4),     // Front top
+        new THREE.Vector3(2.4, 0.8, 0),     // Right top (90°)
+        new THREE.Vector3(0, 0.8, -2.4),    // Back top (180°)
+        new THREE.Vector3(-2.4, 0.8, 0),    // Left top (270°)
       ];
       
       // Use predefined positions for up to 4 projects
