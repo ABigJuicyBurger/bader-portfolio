@@ -4,8 +4,10 @@ import styles from '../styles/Moon3D.module.css';
 
 const Moon3D = ({ size = 350, projects = [] }) => {
   const mountRef = useRef(null);
-  const [activeProject, setActiveProject] = useState(null);
+  const [hoveredProject, setHoveredProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const projectMarkersRef = useRef([]);
+  const animationRef = useRef(null);
   
   useEffect(() => {
     // Store reference to avoid closure issues during cleanup
@@ -184,7 +186,8 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       
       if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
-        setActiveProject(intersectedObject.userData.project);
+        const project = intersectedObject.userData.project;
+        setHoveredProject(project);
         document.body.style.cursor = 'pointer';
         
         // Highlight the selected marker
@@ -198,7 +201,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
           }
         });
       } else {
-        setActiveProject(null);
+        setHoveredProject(null);
         document.body.style.cursor = 'default';
         
         // Reset all markers
@@ -209,10 +212,31 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       }
     };
     
-    // Handle click
-    const handleClick = () => {
-      if (activeProject && activeProject.link) {
-        window.open(activeProject.link, '_blank');
+    // Handle click - now shows/hides project card
+    const handleClick = (event) => {
+      // Update raycaster
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycaster.setFromCamera(mouse, camera);
+      
+      // Check for intersections with project markers
+      const intersects = raycaster.intersectObjects(
+        projectMarkers.map(item => item.marker)
+      );
+      
+      if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        const clickedProject = intersectedObject.userData.project;
+        
+        // Toggle project card visibility
+        setSelectedProject(prevProject => 
+          prevProject && prevProject.name === clickedProject.name ? null : clickedProject
+        );
+      } else {
+        // Close project card if clicking elsewhere
+        setSelectedProject(null);
       }
     };
     
@@ -221,9 +245,8 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     renderer.domElement.addEventListener('click', handleClick);
     
     // Animation loop
-    let animationFrame;
     const animate = () => {
-      animationFrame = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animate);
       
       // Rotate the moon group (moon and attached markers)
       moonGroup.rotation.y += 0.003;
@@ -264,7 +287,9 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       }
       
       // Stop animation
-      cancelAnimationFrame(animationFrame);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
       
       // Dispose of resources
       geometry.dispose();
@@ -283,23 +308,30 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       
       renderer.dispose();
     };
-  }, [size, projects, activeProject]);
+  }, [size, projects]); // Remove activeProject from dependencies to prevent re-rendering
   
   return (
     <div className={styles.container}>
       <div ref={mountRef} className={styles.moon3D} style={{ width: size, height: size }} />
       
-      {/* Project info card on hover */}
-      {activeProject && (
+      {/* Project info card on click */}
+      {selectedProject && (
         <div className={styles.projectCard}>
-          <h3>{activeProject.name}</h3>
-          <p>{activeProject.description}</p>
+          <h3>{selectedProject.name}</h3>
+          <p>{selectedProject.description}</p>
           <div className={styles.projectTags}>
-            {activeProject.tags && activeProject.tags.map((tag, index) => (
+            {selectedProject.tags && selectedProject.tags.map((tag, index) => (
               <span key={index} className={styles.tag}>{tag}</span>
             ))}
           </div>
-          <div className={styles.projectLink}>Click to explore</div>
+          <a 
+            href={selectedProject.link} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className={styles.projectLink}
+          >
+            Open Project
+          </a>
         </div>
       )}
     </div>
