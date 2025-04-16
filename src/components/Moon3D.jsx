@@ -1,9 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import styles from '../styles/Moon3D.module.css';
 
-const Moon3D = ({ size = 200 }) => {
+const Moon3D = ({ size = 350, projects = [] }) => {
   const mountRef = useRef(null);
+  const [activeProject, setActiveProject] = useState(null);
+  const projectMarkersRef = useRef([]);
   
   useEffect(() => {
     // Store reference to avoid closure issues during cleanup
@@ -61,7 +63,7 @@ const Moon3D = ({ size = 200 }) => {
     const moonTexture = createMoonTexture();
     
     // Create moon
-    const geometry = new THREE.SphereGeometry(2, 32, 32);
+    const geometry = new THREE.SphereGeometry(2.5, 32, 32);
     const material = new THREE.MeshStandardMaterial({
       map: moonTexture,
       roughness: 0.8,
@@ -71,6 +73,53 @@ const Moon3D = ({ size = 200 }) => {
     const moon = new THREE.Mesh(geometry, material);
     scene.add(moon);
     
+    // Create project markers
+    const projectMarkers = [];
+    const createProjectMarker = (position, project, index) => {
+      const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+      const markerMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.8
+      });
+      
+      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+      marker.position.copy(position);
+      marker.userData = { project, index };
+      scene.add(marker);
+      
+      // Create pulsing effect
+      const pulse = new THREE.PointLight(0xffffff, 0.5, 0.5);
+      pulse.position.copy(position);
+      scene.add(pulse);
+      
+      // Store references to the markers
+      projectMarkers.push({ marker, pulse, position });
+      
+      return { marker, pulse };
+    };
+    
+    // Position markers around the moon
+    if (projects.length > 0) {
+      const radius = 2.8; // Slightly larger than moon radius
+      projects.forEach((project, index) => {
+        // Calculate position on moon surface
+        const phi = Math.acos(-1 + (2 * index) / projects.length);
+        const theta = Math.sqrt(projects.length * Math.PI) * phi;
+        
+        const position = new THREE.Vector3(
+          radius * Math.sin(phi) * Math.cos(theta),
+          radius * Math.sin(phi) * Math.sin(theta),
+          radius * Math.cos(phi)
+        );
+        
+        createProjectMarker(position, project, index);
+      });
+    }
+    
+    // Store for raycasting
+    projectMarkersRef.current = projectMarkers;
+    
     // Add lights
     const ambientLight = new THREE.AmbientLight(0x404040, 1);
     scene.add(ambientLight);
@@ -79,12 +128,64 @@ const Moon3D = ({ size = 200 }) => {
     directionalLight.position.set(5, 3, 5);
     scene.add(directionalLight);
     
-    // Animation loop
-    const animate = () => {
-      requestAnimationFrame(animate);
+    // Setup raycaster for interaction
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    
+    // Handle mouse movement
+    const handleMouseMove = (event) => {
+      // Normalize mouse position
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       
-      // Rotate the moon
-      moon.rotation.y += 0.005;
+      // Update raycaster
+      raycaster.setFromCamera(mouse, camera);
+      
+      // Check for intersections with project markers
+      const intersects = raycaster.intersectObjects(
+        projectMarkers.map(item => item.marker)
+      );
+      
+      if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        setActiveProject(intersectedObject.userData.project);
+        document.body.style.cursor = 'pointer';
+      } else {
+        setActiveProject(null);
+        document.body.style.cursor = 'default';
+      }
+    };
+    
+    // Handle click
+    const handleClick = () => {
+      if (activeProject && activeProject.link) {
+        window.open(activeProject.link, '_blank');
+      }
+    };
+    
+    // Add event listeners
+    renderer.domElement.addEventListener('mousemove', handleMouseMove);
+    renderer.domElement.addEventListener('click', handleClick);
+    
+    // Animation loop
+    let animationFrame;
+    const animate = () => {
+      animationFrame = requestAnimationFrame(animate);
+      
+      // Rotate the moon slowly
+      moon.rotation.y += 0.003;
+      
+      // Update markers to face camera and pulse
+      projectMarkers.forEach((item, index) => {
+        // Make markers always face the camera
+        item.marker.lookAt(camera.position);
+        
+        // Pulse effect
+        const time = Date.now() * 0.001;
+        const pulse = Math.sin(time + index) * 0.5 + 0.5;
+        item.pulse.intensity = pulse * 0.8;
+      });
       
       renderer.render(scene, camera);
     };
@@ -94,19 +195,48 @@ const Moon3D = ({ size = 200 }) => {
     // Cleanup on unmount
     return () => {
       if (currentRef && currentRef.contains(renderer.domElement)) {
+        // Remove event listeners
+        renderer.domElement.removeEventListener('mousemove', handleMouseMove);
+        renderer.domElement.removeEventListener('click', handleClick);
+        
         currentRef.removeChild(renderer.domElement);
       }
+      
+      // Stop animation
+      cancelAnimationFrame(animationFrame);
       
       // Dispose of resources
       geometry.dispose();
       material.dispose();
       moonTexture.dispose();
+      
+      // Dispose of marker resources
+      projectMarkers.forEach(({ marker }) => {
+        marker.geometry.dispose();
+        marker.material.dispose();
+      });
+      
       renderer.dispose();
     };
-  }, [size]);
+  }, [size, projects, activeProject]);
   
   return (
-    <div ref={mountRef} className={styles.moon3D} />
+    <div className={styles.container}>
+      <div ref={mountRef} className={styles.moon3D} style={{ width: size, height: size }} />
+      
+      {/* Project info card on hover */}
+      {activeProject && (
+        <div className={styles.projectCard}>
+          <h3>{activeProject.name}</h3>
+          <p>{activeProject.description}</p>
+          <div className={styles.projectTags}>
+            {activeProject.tags && activeProject.tags.map((tag, index) => (
+              <span key={index} className={styles.tag}>{tag}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -2,24 +2,32 @@ import React from 'react';
 import styles from '../styles/ProjectsSection.module.css';
 import Moon3D from './Moon3D';
 import About from './About';
-import Skills from './Skills';
+// import Skills from './Skills';
 
 const projects = [
   {
     name: 'JobCompass',
-    description: 'Your featured project: AI-powered job search assistant.',
-    link: '#',
-    featured: true,
+    description: 'AI-powered job search assistant with personalized recommendations.',
+    link: 'https://github.com/yourusername/jobcompass',
+    tags: ['React', 'AI', 'Node.js'],
   },
   {
-    name: 'Project Two',
-    description: 'Another cool project.',
-    link: '#',
+    name: 'Stellar Weather',
+    description: 'Interactive weather visualization app with astronomical data.',
+    link: 'https://github.com/yourusername/stellar-weather',
+    tags: ['JavaScript', 'APIs', 'Canvas'],
   },
   {
-    name: 'Project Three',
-    description: 'Yet another project.',
-    link: '#',
+    name: 'Cosmic Blog',
+    description: 'Space-themed blog platform with rich content management.',
+    link: 'https://github.com/yourusername/cosmic-blog',
+    tags: ['React', 'MongoDB', 'Express'],
+  },
+  {
+    name: 'Orbital',
+    description: 'Physics-based space orbit simulation and visualization.',
+    link: 'https://github.com/yourusername/orbital',
+    tags: ['Three.js', 'Physics', 'WebGL'],
   },
 ];
 
@@ -29,26 +37,14 @@ const ProjectsSection = () => (
       <div className={styles.sectionLayout}>
         <div className={styles.content}>
           <About />
-          <Skills />
+          {/* Skills component commented out as requested */}
+          {/* <Skills /> */}
+          
           <h2 className={styles.heading}>Projects</h2>
-          <div className={styles.projectsGrid}>
-            {projects.map((project) => (
-              <div
-                key={project.name}
-                className={styles.project}
-              >
-                <h3 className={styles.projectTitle}>{project.name}</h3>
-                <p className={styles.projectDescription}>{project.description}</p>
-                <div className={styles.projectTech}>
-                  <span className={styles.techTag}>React</span>
-                  <span className={styles.techTag}>JavaScript</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Project grid removed - now displayed on the moon */}
         </div>
         <div className={styles.moonContainer}>
-          <Moon3D size={250} />
+          <Moon3D size={400} projects={projects} />
         </div>
       </div>
     </div>

@@ -1,19 +1,84 @@
 @import url('./variables.css');
 
-.moon3D {
-  width: 200px;
-  height: 200px;
+.container {
   position: relative;
   display: flex;
-  align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+  align-items: center;
 }
 
-/* For smaller screens */
+.moon3D {
+  position: relative;
+  cursor: default;
+}
+
+.projectCard {
+  position: absolute;
+  background: var(--color-cosmic-gray);
+  color: var(--color-starlight);
+  border-radius: 8px;
+  padding: var(--space-md);
+  min-width: 250px;
+  max-width: 300px;
+  right: 20px;
+  bottom: 20px;
+  box-shadow: var(--shadow-cosmic);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.3s forwards;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.projectCard h3 {
+  margin-top: 0;
+  margin-bottom: var(--space-xs);
+  font-size: var(--font-size-subtitle);
+  color: var(--color-starlight);
+}
+
+.projectCard p {
+  margin-bottom: var(--space-sm);
+  color: var(--color-stardust);
+  font-size: var(--font-size-small);
+  line-height: 1.5;
+}
+
+.projectTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-nebula-accent);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: var(--font-size-small);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .moon3D {
-    width: 150px;
-    height: 150px;
+  .projectCard {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) translateY(20px);
+    min-width: 200px;
+  }
+  
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   }
 }

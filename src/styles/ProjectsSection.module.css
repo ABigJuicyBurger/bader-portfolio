@@ -2,7 +2,7 @@
 
 .projects {
   min-height: 100vh;
-  padding: var(--space-xl) var(--space-md);
+  padding: var(--space-md) var(--space-sm);
   background: var(--color-space-black);
   color: var(--color-starlight);
   position: relative;
@@ -28,36 +28,38 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 /* Two-column layout */
 .sectionLayout {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-lg);
+  width: 100%;
 }
 
 .content {
-  flex-basis: 65%;
+  flex-basis: 45%;
+  padding-right: var(--space-md);
 }
 
 .moonContainer {
-  flex-basis: 30%;
+  flex-basis: 55%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  position: sticky;
-  top: var(--space-lg);
-  height: fit-content;
+  position: relative;
 }
 
 .heading {
   font-size: var(--font-size-title);
-  margin-bottom: var(--space-lg);
+  margin: var(--space-md) 0;
   color: var(--color-starlight);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
   position: relative;
@@ -130,10 +132,14 @@
     flex-direction: column-reverse;
   }
   
+  .content {
+    flex-basis: 100%;
+    padding-right: 0;
+  }
+  
   .moonContainer {
-    margin: 0 auto var(--space-lg);
-    position: relative;
-    top: 0;
+    flex-basis: 100%;
+    margin-bottom: var(--space-md);
   }
   
   .projectsGrid {
