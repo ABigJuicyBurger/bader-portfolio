@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '../styles/ProjectsSection.module.css';
-import Moon from './Moon';
+import Moon3D from './Moon3D';
 import About from './About';
 import Skills from './Skills';
 
@@ -25,26 +25,32 @@ const projects = [
 
 const ProjectsSection = () => (
   <section className={styles.projects} id="projects">
-    <div className={styles.leftContent}>
-      <About />
-      <Skills />
-      <div className={styles.projectsList}>
-        {projects.map((project) => (
-          <a
-            key={project.name}
-            href={project.link}
-            className={project.featured ? styles.featured : styles.project}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h3>{project.name}</h3>
-            <p>{project.description}</p>
-          </a>
-        ))}
+    <div className={styles.container}>
+      <div className={styles.sectionLayout}>
+        <div className={styles.content}>
+          <About />
+          <Skills />
+          <h2 className={styles.heading}>Projects</h2>
+          <div className={styles.projectsGrid}>
+            {projects.map((project) => (
+              <div
+                key={project.name}
+                className={styles.project}
+              >
+                <h3 className={styles.projectTitle}>{project.name}</h3>
+                <p className={styles.projectDescription}>{project.description}</p>
+                <div className={styles.projectTech}>
+                  <span className={styles.techTag}>React</span>
+                  <span className={styles.techTag}>JavaScript</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.moonContainer}>
+          <Moon3D size={250} />
+        </div>
       </div>
-    </div>
-    <div className={styles.rightContent}>
-      <Moon type="full" className={styles.fullMoon} animate />
     </div>
   </section>
 );

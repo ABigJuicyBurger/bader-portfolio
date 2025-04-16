@@ -1,12 +1,29 @@
+@import url('./variables.css');
+
 .about {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-lg);
 }
+
 .about h2 {
-  margin-bottom: 0.7rem;
-  color: #eebbc3;
+  font-size: var(--font-size-title);
+  margin-bottom: var(--space-sm);
+  color: var(--color-starlight);
+  position: relative;
+  display: inline-block;
 }
+
+.about h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 1px;
+  background-color: var(--color-nebula-accent);
+}
+
 .about p {
-  color: #c0caf5;
-  font-size: 1.05rem;
-  max-width: 440px;
+  color: var(--color-stardust);
+  line-height: 1.6;
+  max-width: 650px;
 }

@@ -1,0 +1,19 @@
+@import url('./variables.css');
+
+.moon3D {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+/* For smaller screens */
+@media (max-width: 768px) {
+  .moon3D {
+    width: 150px;
+    height: 150px;
+  }
+}

@@ -1,7 +1,64 @@
+@import url('./variables.css');
+
 .rotate {
   animation: rotateMoon 8s linear infinite;
 }
 @keyframes rotateMoon {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.moon {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crescent {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--color-stardust);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.crescent::before {
+  content: '';
+  position: absolute;
+  top: -5%;
+  left: -10%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--color-space-black);
+  transform: translate(10%, 0);
+}
+
+/* Subtle crater details */
+.crescent::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: 
+    radial-gradient(circle at 70% 20%, rgba(200, 200, 200, 0.15) 5%, transparent 8%),
+    radial-gradient(circle at 30% 35%, rgba(200, 200, 200, 0.1) 3%, transparent 5%),
+    radial-gradient(circle at 60% 60%, rgba(200, 200, 200, 0.1) 4%, transparent 7%),
+    radial-gradient(circle at 40% 80%, rgba(200, 200, 200, 0.1) 3%, transparent 6%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.full {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--color-moon-glow) 0%, var(--color-stardust) 70%);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
 }

@@ -1,11 +1,144 @@
+@import url('./variables.css');
+
 .projects {
   min-height: 100vh;
-  width: 100%;
-  display: flex;
-  background: linear-gradient(90deg, #121629 70%, #232946 100%);
-  color: #fff;
+  padding: var(--space-xl) var(--space-md);
+  background: var(--color-space-black);
+  color: var(--color-starlight);
   position: relative;
-  padding-top: 4rem; /* Add padding to account for header when it appears */
+}
+
+/* Star field effect - fewer stars than landing */
+.projects::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(1px 1px at 20% 20%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 40% 50%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 60% 30%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 80% 70%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 15% 80%, var(--color-starlight), transparent),
+    radial-gradient(1px 1px at 90% 10%, var(--color-starlight), transparent);
+  opacity: 0.4;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Two-column layout */
+.sectionLayout {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.content {
+  flex-basis: 65%;
+}
+
+.moonContainer {
+  flex-basis: 30%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: sticky;
+  top: var(--space-lg);
+  height: fit-content;
+}
+
+.heading {
+  font-size: var(--font-size-title);
+  margin-bottom: var(--space-lg);
+  color: var(--color-starlight);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.heading::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 1px;
+  background: var(--color-nebula-accent);
+}
+
+.projectsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.project {
+  background: var(--color-cosmic-gray);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+  box-shadow: var(--shadow-cosmic);
+  padding: var(--space-md);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.project:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-starlight);
+}
+
+.projectTitle {
+  margin-top: 0;
+  margin-bottom: var(--space-sm);
+  color: var(--color-starlight);
+  font-size: var(--font-size-subtitle);
+}
+
+.projectDescription {
+  color: var(--color-stardust);
+  margin-bottom: var(--space-md);
+  flex-grow: 1;
+}
+
+.projectTech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.techTag {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-nebula-accent);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: var(--font-size-small);
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .sectionLayout {
+    flex-direction: column-reverse;
+  }
+  
+  .moonContainer {
+    margin: 0 auto var(--space-lg);
+    position: relative;
+    top: 0;
+  }
+  
+  .projectsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .leftContent {
@@ -24,17 +157,17 @@
 }
 
 .project, .featured {
-  background: #232946;
+  background: var(--color-cosmic-gray);
   border-radius: 10px;
   padding: 1.2rem 1.5rem;
-  color: #fff;
+  color: var(--color-starlight);
   text-decoration: none;
   transition: box-shadow 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow-cosmic);
 }
 
 .project:hover, .featured:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.20);
+  box-shadow: var(--shadow-starlight);
   transform: translateY(-2px) scale(1.03);
 }
 
