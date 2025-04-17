@@ -21,7 +21,6 @@ function App() {
         // When landing section goes out of view, show header
         if (entries[0]) {
           setShowHeader(!entries[0].isIntersecting);
-          console.log("Header visibility changed:", !entries[0].isIntersecting);
         }
       },
       {
@@ -51,7 +50,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Highly visible star background with inline styles */}
+      {/* Global star background */}
       <StarBackground />
       
       <LandingSection 

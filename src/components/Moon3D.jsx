@@ -7,17 +7,18 @@ const Moon3D = ({ size = 350, projects = [] }) => {
   const [selectedProject, setSelectedProject] = useState(null);
   const projectMarkersRef = useRef([]);
   const animationRef = useRef(null);
-  
+
   useEffect(() => {
     // Store reference to avoid closure issues during cleanup
     const currentRef = mountRef.current;
     if (!currentRef) return;
-    
+
     // Scene setup
     const scene = new THREE.Scene();
+
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     camera.position.z = 5;
-    
+
     // Renderer setup with transparent background
     const renderer = new THREE.WebGLRenderer({ 
       alpha: true,
@@ -25,44 +26,44 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     });
     renderer.setSize(size, size);
     renderer.setClearColor(0x000000, 0);
-    
+
     // Add renderer to the DOM
     currentRef.appendChild(renderer.domElement);
-    
+
     // Create procedural moon texture
     const createMoonTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 512;
       const ctx = canvas.getContext('2d');
-      
+
       // Create gradient background for the moon
       const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
       gradient.addColorStop(0, '#f5f5f5');
       gradient.addColorStop(0.8, '#e0e0e0');
       gradient.addColorStop(1, '#d0d0d0');
-      
+
       // Fill the canvas with the gradient
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 512, 512);
-      
+
       // Add craters
       for (let i = 0; i < 30; i++) {
         const x = Math.random() * 512;
         const y = Math.random() * 512;
         const radius = 5 + Math.random() * 15;
-        
+
         ctx.fillStyle = `rgba(150, 150, 150, ${Math.random() * 0.3})`;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
       }
-      
+
       return new THREE.CanvasTexture(canvas);
     };
-    
+
     const moonTexture = createMoonTexture();
-    
+
     // Create moon
     const geometry = new THREE.SphereGeometry(2.5, 32, 32);
     const material = new THREE.MeshStandardMaterial({
@@ -70,17 +71,18 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       roughness: 0.8,
       metalness: 0.1,
     });
-    
+
     const moon = new THREE.Mesh(geometry, material);
     scene.add(moon);
-    
+
     // Create moon group to attach markers to so they rotate with the moon
     const moonGroup = new THREE.Group();
     moonGroup.add(moon);
     scene.add(moonGroup);
-    
+
     // Create project markers
     const projectMarkers = [];
+
     const createProjectMarker = (position, project, index) => {
       // Make markers larger and more visible
       const markerGeometry = new THREE.SphereGeometry(0.2, 16, 16);
@@ -89,17 +91,17 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         transparent: true,
         opacity: 0.9
       });
-      
+
       const marker = new THREE.Mesh(markerGeometry, markerMaterial);
       marker.position.copy(position);
       marker.userData = { project, index };
       moonGroup.add(marker); // Attach to moonGroup so it rotates with the moon
-      
+
       // Create a separate point light for the glow effect that doesn't rotate with the moon
       const pulse = new THREE.PointLight(0xffffff, 1, 1);
       pulse.position.copy(position);
       scene.add(pulse);
-      
+
       // Create a glow effect that rotates with the moon
       const glowGeometry = new THREE.SphereGeometry(0.25, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
@@ -111,103 +113,74 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       const glow = new THREE.Mesh(glowGeometry, glowMaterial);
       glow.position.copy(position);
       moonGroup.add(glow); // Attach to moonGroup
-      
+
       // Store references to the markers
       projectMarkers.push({ marker, pulse, glow, position, originalPosition: position.clone() });
-      
+
       return { marker, pulse, glow };
     };
-    
-    // Position markers prominently on the front hemisphere of the moon
+
+    // Position markers around the entire moon to increase visibility frequency
     if (projects.length > 0) {
-      // Create randomized positions around the moon
-      const createRandomPositions = (count) => {
-        const positions = [];
-        
-        // Ensure we have at least one marker in each quadrant for visibility
-        const quadrants = [
-          { minPhi: 0.1, maxPhi: 0.7, minTheta: -0.7, maxTheta: 0.7 },    // Front (0°)
-          { minPhi: 0.1, maxPhi: 0.7, minTheta: 0.7, maxTheta: 2.1 },     // Right (90°)
-          { minPhi: 0.1, maxPhi: 0.7, minTheta: 2.1, maxTheta: 3.5 },     // Back (180°)
-          { minPhi: 0.1, maxPhi: 0.7, minTheta: 3.5, maxTheta: 5.0 }      // Left (270°)
-        ];
-        
-        // Place one marker in each quadrant first
-        quadrants.forEach((quadrant, i) => {
-          if (i < count) {
-            // Random position within the quadrant
-            const phi = Math.PI * (quadrant.minPhi + Math.random() * (quadrant.maxPhi - quadrant.minPhi));
-            const theta = Math.PI * (quadrant.minTheta + Math.random() * (quadrant.maxTheta - quadrant.minTheta));
-            
-            // Calculate position using spherical coordinates
-            const radius = 2.5; // Moon radius
-            const x = radius * Math.sin(phi) * Math.cos(theta);
-            const y = radius * Math.sin(phi) * Math.sin(theta) * (Math.random() * 0.6 - 0.3); // Random Y offset
-            const z = radius * Math.cos(phi);
-            
-            positions.push(new THREE.Vector3(x, y, z));
-          }
-        });
-        
-        // If we need more markers, add them randomly
-        for (let i = quadrants.length; i < count; i++) {
-          const phi = Math.random() * Math.PI; // 0 to PI
-          const theta = Math.random() * Math.PI * 2; // 0 to 2PI
-          
-          const radius = 2.5; // Moon radius
-          const x = radius * Math.sin(phi) * Math.cos(theta);
-          const y = radius * Math.sin(phi) * Math.sin(theta) * (Math.random() * 0.8 - 0.4); // Random Y variation
-          const z = radius * Math.cos(phi);
-          
-          positions.push(new THREE.Vector3(x, y, z));
-        }
-        
-        return positions;
-      };
-      
-      // Generate random positions for all projects
-      const positions = createRandomPositions(projects.length);
-      
-      // Create markers for all projects
+      // Calculate positions for markers distributed evenly around the moon
+      const positions = [];
+      const count = Math.max(12, projects.length * 2); // Use more markers for better coverage
+
+      // Create positions evenly around the moon with some bias toward the front
+      for (let i = 0; i < count; i++) {
+        // Distribute markers evenly around the full 360 degrees
+        const angle = (i / count) * Math.PI * 2;
+
+        // Bias markers toward the front of the moon
+        const x = 2.5 * Math.cos(angle);
+        const y = (Math.random() - 0.5) * 2; // Random Y position
+        const z = 2.5 * Math.sin(angle);
+
+        positions.push(new THREE.Vector3(x, y, z));
+      }
+
+      // Create markers for the actual projects
       projects.forEach((project, index) => {
-        createProjectMarker(positions[index], project, index);
+        // Pick a position from our calculated positions
+        const posIndex = index % positions.length;
+        createProjectMarker(positions[posIndex], project, index);
       });
     }
-    
+
     // Store for raycasting
     projectMarkersRef.current = projectMarkers;
-    
+
     // Add lights
     const ambientLight = new THREE.AmbientLight(0x404040, 1);
     scene.add(ambientLight);
-    
+
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(5, 3, 5);
     scene.add(directionalLight);
-    
+
     // Setup raycaster for interaction
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    
+
     // Handle mouse movement
     const handleMouseMove = (event) => {
       // Normalize mouse position
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      
+
       // Update raycaster
       raycaster.setFromCamera(mouse, camera);
-      
+
       // Check for intersections with project markers
       const intersects = raycaster.intersectObjects(
         projectMarkers.map(item => item.marker)
       );
-      
+
       if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
         document.body.style.cursor = 'pointer';
-        
+
         // Highlight the selected marker
         projectMarkers.forEach(item => {
           if (item.marker === intersectedObject) {
@@ -220,7 +193,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         });
       } else {
         document.body.style.cursor = 'default';
-        
+
         // Reset all markers
         projectMarkers.forEach(item => {
           item.marker.material.color.set(0xffffff);
@@ -228,25 +201,25 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         });
       }
     };
-    
+
     // Handle click - now shows/hides project card
     const handleClick = (event) => {
       // Update raycaster
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      
+
       raycaster.setFromCamera(mouse, camera);
-      
+
       // Check for intersections with project markers
       const intersects = raycaster.intersectObjects(
         projectMarkers.map(item => item.marker)
       );
-      
+
       if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
         const clickedProject = intersectedObject.userData.project;
-        
+
         // Toggle project card visibility
         setSelectedProject(prevProject => 
           prevProject && prevProject.name === clickedProject.name ? null : clickedProject
@@ -256,63 +229,63 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         setSelectedProject(null);
       }
     };
-    
+
     // Add event listeners
     renderer.domElement.addEventListener('mousemove', handleMouseMove);
     renderer.domElement.addEventListener('click', handleClick);
-    
-    // Animation loop
+
+    // Animation loop - faster rotation
     const animate = () => {
       animationRef.current = requestAnimationFrame(animate);
-      
-      // Rotate the moon group (moon and attached markers)
-      moonGroup.rotation.y += 0.003;
-      
+
+      // Rotate the moon group faster (moon and attached markers)
+      moonGroup.rotation.y += 0.005; // Increased rotation speed for more frequent marker visibility
+
       // Update light positions and pulse effects
       projectMarkers.forEach((item, index) => {
         // Calculate current world position of the marker after rotation
         const worldPosition = new THREE.Vector3();
         item.marker.getWorldPosition(worldPosition);
-        
+
         // Update the pulse light position to match the marker's current position
         item.pulse.position.copy(worldPosition);
-        
+
         // Pulse effect
         const time = Date.now() * 0.001;
         const pulse = Math.sin(time + index) * 0.5 + 0.5;
         item.pulse.intensity = pulse * 1.5; // Stronger pulse
-        
+
         // Scale the glow with the pulse
         if (item.glow) {
           item.glow.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
         }
       });
-      
+
       renderer.render(scene, camera);
     };
-    
+
     animate();
-    
+
     // Cleanup on unmount
     return () => {
       if (currentRef && currentRef.contains(renderer.domElement)) {
         // Remove event listeners
         renderer.domElement.removeEventListener('mousemove', handleMouseMove);
         renderer.domElement.removeEventListener('click', handleClick);
-        
+
         currentRef.removeChild(renderer.domElement);
       }
-      
+
       // Stop animation
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      
+
       // Dispose of resources
       geometry.dispose();
       material.dispose();
       moonTexture.dispose();
-      
+
       // Dispose of marker resources
       projectMarkers.forEach(({ marker, glow }) => {
         marker.geometry.dispose();
@@ -322,15 +295,15 @@ const Moon3D = ({ size = 350, projects = [] }) => {
           glow.material.dispose();
         }
       });
-      
+
       renderer.dispose();
     };
   }, [size, projects]); // Remove activeProject from dependencies to prevent re-rendering
-  
+
   return (
     <div className={styles.container}>
       <div ref={mountRef} className={styles.moon3D} style={{ width: size, height: size }} />
-      
+
       {/* Project info card on click */}
       {selectedProject && (
         <div className={styles.projectCard}>
@@ -341,14 +314,18 @@ const Moon3D = ({ size = 350, projects = [] }) => {
               <span key={index} className={styles.tag}>{tag}</span>
             ))}
           </div>
-          <a 
-            href={selectedProject.link} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className={styles.projectLink}
-          >
-            Open Project
-          </a>
+          
+          {/* Use the 'link' property that exists in the project data */}
+          {selectedProject.link && (
+            <a 
+              href={selectedProject.link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.projectLink}
+            >
+              View Project
+            </a>
+          )}
         </div>
       )}
     </div>
