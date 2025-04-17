@@ -5,16 +5,21 @@ import styles from '../styles/Moon3D.module.css';
 const Moon3D = ({ size = 350, projects = [] }) => {
   const mountRef = useRef(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const projectMarkersRef = useRef([]);
   const animationRef = useRef(null);
   const rotationSpeedRef = useRef(0.005);
   const targetRotationSpeedRef = useRef(0.005);
+  const targetRotationRef = useRef(null);
+  const moonGroupRef = useRef(null);
+  const projectCardRef = useRef(null);
 
   useEffect(() => {
     // Initialize with the first project if available
     if (projects.length > 0 && !selectedProject) {
       setSelectedProject(projects[0]);
+      setSelectedIndex(0);
     }
   }, [projects, selectedProject]);
 
@@ -61,6 +66,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     const moonGroup = new THREE.Group();
     moonGroup.add(moon);
     scene.add(moonGroup);
+    moonGroupRef.current = moonGroup;
 
     // Create project markers
     const projectMarkers = [];
@@ -129,7 +135,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       });
     }
 
-    // Store for raycasting
+    // Update projectMarkersRef to make it accessible outside this effect
     projectMarkersRef.current = projectMarkers;
 
     // Add lights
@@ -237,36 +243,36 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     const animate = () => {
       animationRef.current = requestAnimationFrame(animate);
 
-      // Smoothly interpolate between current and target rotation speeds
+      // Smoothly adjust rotation speed
       rotationSpeedRef.current += (targetRotationSpeedRef.current - rotationSpeedRef.current) * 0.05;
       
       // Rotate the moon group at the current speed
-      moonGroup.rotation.y += rotationSpeedRef.current;
+      moonGroupRef.current.rotation.y += rotationSpeedRef.current;
 
       // Update light positions and pulse effects
       projectMarkers.forEach((item, index) => {
         // Calculate current world position of the marker after rotation
         const worldPosition = new THREE.Vector3();
         item.marker.getWorldPosition(worldPosition);
-
-        // Update the pulse light position to match the marker's current position
+        
+        // Update pulse position to match marker
         item.pulse.position.copy(worldPosition);
-
-        // Pulse effect
+        
+        // Pulse animation using time
         const time = Date.now() * 0.001;
         const pulse = Math.sin(time + index) * 0.5 + 0.5;
         
-        // Apply pulse intensity based on whether the marker is highlighted
-        if (index === hoveredIndex) {
-          item.pulse.intensity = pulse * 2.5; // Stronger pulse for highlighted marker
+        // Check if this is the hovered/selected marker (index matches)
+        if (hoveredIndex === index) {
+          item.pulse.intensity = 2 + pulse; // Brighter pulse
           
-          // Scale the glow effect more dramatically when highlighted
+          // Enhanced glow animation for selected marker
           if (item.glow) {
-            item.glow.scale.set(1 + pulse * 0.6, 1 + pulse * 0.6, 1 + pulse * 0.6);
+            item.glow.scale.set(1 + pulse * 0.5, 1 + pulse * 0.5, 1 + pulse * 0.5);
           }
           
-          // Make the marker itself pulse
-          item.marker.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
+          // Scale the marker slightly
+          item.marker.scale.set(1.2, 1.2, 1.2);
         } else {
           item.pulse.intensity = pulse * 1.5; // Normal pulse
           
@@ -279,6 +285,11 @@ const Moon3D = ({ size = 350, projects = [] }) => {
           item.marker.scale.set(1, 1, 1);
         }
       });
+
+      // Rotate the moon to face the target rotation
+      if (targetRotationRef.current !== null) {
+        moonGroupRef.current.rotation.y += (targetRotationRef.current - moonGroupRef.current.rotation.y) * 0.05;
+      }
 
       renderer.render(scene, camera);
     };
@@ -320,6 +331,71 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     };
   }, [size, projects]); // Remove hoveredIndex from dependencies to prevent re-rendering
 
+  // Focus on a specific marker and rotate the moon to center it
+  const focusOnMarker = (index) => {
+    if (!moonGroupRef.current || !projectMarkersRef.current || projectMarkersRef.current.length === 0) return;
+    
+    // Get the marker position
+    const marker = projectMarkersRef.current[index];
+    if (!marker) return;
+    
+    // Calculate the angle needed to bring the marker to the front
+    const position = marker.originalPosition.clone();
+    
+    // Calculate the rotation to bring the marker to face the user
+    // First get the angle of the marker relative to the center
+    const theta = Math.atan2(position.z, position.x);
+    
+    // Add 270 degrees (3π/2 radians) to make it face directly toward the camera
+    // This adds an additional 90 degrees to the previous 180 degree rotation
+    targetRotationRef.current = theta + Math.PI + Math.PI/2;
+    
+    // Pause automatic rotation while focusing
+    targetRotationSpeedRef.current = 0;
+    
+    // Highlight this marker
+    setHoveredIndex(index);
+    
+    // Update marker colors directly
+    if (projectMarkersRef.current && projectMarkersRef.current.length > 0) {
+      projectMarkersRef.current.forEach((item, i) => {
+        if (i === index) {
+          item.marker.material.color.set(0x00ffff);
+          item.glow.material.color.set(0x00ffff);
+        } else {
+          item.marker.material.color.set(0xffffff);
+          item.glow.material.color.set(0xffffff);
+        }
+      });
+    }
+    
+    // Automatically resume rotation after 4 seconds
+    setTimeout(() => {
+      targetRotationSpeedRef.current = 0.005;
+      // Keep the current rotation as starting point rather than resetting target
+      targetRotationRef.current = null;
+    }, 4000);
+  };
+
+  // Navigate through projects with carousel buttons
+  const navigateProject = (direction) => {
+    if (projects.length === 0) return;
+    
+    let newIndex = selectedIndex;
+    
+    if (direction === 'next') {
+      newIndex = (selectedIndex + 1) % projects.length;
+    } else {
+      newIndex = (selectedIndex - 1 + projects.length) % projects.length;
+    }
+    
+    setSelectedIndex(newIndex);
+    setSelectedProject(projects[newIndex]);
+    
+    // Focus on the corresponding marker
+    focusOnMarker(newIndex);
+  };
+
   // Handle project card hover to highlight the corresponding marker
   const handleProjectCardHover = (index) => {
     if (index >= 0) {
@@ -359,6 +435,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
 
       {/* Project info card - Always visible */}
       <div 
+        ref={projectCardRef}
         className={styles.projectCard}
         onMouseEnter={() => selectedProject && handleProjectCardHover(projects.findIndex(p => p.name === selectedProject.name))}
         onMouseLeave={handleProjectCardLeave}
@@ -387,6 +464,24 @@ const Moon3D = ({ size = 350, projects = [] }) => {
           </>
         ) : (
           <p className={styles.noProject}>Hover over a marker to see project details</p>
+        )}
+        
+        {/* Carousel navigation buttons */}
+        {projects.length > 1 && (
+          <div className={styles.carouselNav}>
+            <button 
+              className={styles.navButton} 
+              onClick={() => navigateProject('prev')}
+            >
+              &lt;
+            </button>
+            <button 
+              className={styles.navButton} 
+              onClick={() => navigateProject('next')}
+            >
+              &gt;
+            </button>
+          </div>
         )}
       </div>
     </div>
