@@ -5,8 +5,18 @@ import styles from '../styles/Moon3D.module.css';
 const Moon3D = ({ size = 350, projects = [] }) => {
   const mountRef = useRef(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const projectMarkersRef = useRef([]);
   const animationRef = useRef(null);
+  const rotationSpeedRef = useRef(0.005);
+  const targetRotationSpeedRef = useRef(0.005);
+
+  useEffect(() => {
+    // Initialize with the first project if available
+    if (projects.length > 0 && !selectedProject) {
+      setSelectedProject(projects[0]);
+    }
+  }, [projects, selectedProject]);
 
   useEffect(() => {
     // Store reference to avoid closure issues during cleanup
@@ -30,44 +40,16 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     // Add renderer to the DOM
     currentRef.appendChild(renderer.domElement);
 
-    // Create procedural moon texture
-    const createMoonTexture = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-
-      // Create gradient background for the moon
-      const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
-      gradient.addColorStop(0, '#f5f5f5');
-      gradient.addColorStop(0.8, '#e0e0e0');
-      gradient.addColorStop(1, '#d0d0d0');
-
-      // Fill the canvas with the gradient
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 512, 512);
-
-      // Add craters
-      for (let i = 0; i < 30; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
-        const radius = 5 + Math.random() * 15;
-
-        ctx.fillStyle = `rgba(150, 150, 150, ${Math.random() * 0.3})`;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      return new THREE.CanvasTexture(canvas);
-    };
-
-    const moonTexture = createMoonTexture();
+    // Load moon textures
+    const textureLoader = new THREE.TextureLoader();
+    const moonTexture = textureLoader.load('/moon_texture.png');
+    const moonNormalMap = textureLoader.load('/moon_normal.png');
 
     // Create moon
     const geometry = new THREE.SphereGeometry(2.5, 32, 32);
     const material = new THREE.MeshStandardMaterial({
       map: moonTexture,
+      normalMap: moonNormalMap,
       roughness: 0.8,
       metalness: 0.1,
     });
@@ -122,54 +104,53 @@ const Moon3D = ({ size = 350, projects = [] }) => {
 
     // Position markers around the entire moon to increase visibility frequency
     if (projects.length > 0) {
-      // Calculate positions for markers distributed evenly around the moon
-      const positions = [];
-      const count = Math.max(12, projects.length * 2); // Use more markers for better coverage
-
-      // Create positions evenly around the moon with some bias toward the front
-      for (let i = 0; i < count; i++) {
-        // Distribute markers evenly around the full 360 degrees
-        const angle = (i / count) * Math.PI * 2;
-
-        // Bias markers toward the front of the moon
-        const x = 2.5 * Math.cos(angle);
-        const y = (Math.random() - 0.5) * 2; // Random Y position
-        const z = 2.5 * Math.sin(angle);
-
-        positions.push(new THREE.Vector3(x, y, z));
-      }
-
-      // Create markers for the actual projects
       projects.forEach((project, index) => {
-        // Pick a position from our calculated positions
-        const posIndex = index % positions.length;
-        createProjectMarker(positions[posIndex], project, index);
+        // Distribute the markers evenly around the moon
+        // Convert index to angles to position markers around the spherical surface
+        const phi = Math.acos(-1 + (2 * index) / projects.length);
+        const theta = Math.sqrt(projects.length * Math.PI) * phi;
+        
+        // Convert spherical coordinates to Cartesian (x, y, z) coordinates
+        const x = 2.5 * Math.sin(phi) * Math.cos(theta);
+        const y = 2.5 * Math.sin(phi) * Math.sin(theta);
+        const z = 2.5 * Math.cos(phi);
+        
+        // Check visibility, north hemisphere bias for increased visibility
+        const position = new THREE.Vector3(x, Math.abs(y), z);
+        
+        createProjectMarker(position, project, index);
       });
     }
 
-    // Store for raycasting
+    // Store reference to projectMarkers array
     projectMarkersRef.current = projectMarkers;
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0x404040, 1);
+    // Add ambient light
+    const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
     scene.add(ambientLight);
 
+    // Add directional light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 3, 5);
+    directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
 
-    // Setup raycaster for interaction
+    // Add point light for dramatic effect
+    const pointLight = new THREE.PointLight(0x00ffff, 1, 10);
+    pointLight.position.set(-5, 5, 5);
+    scene.add(pointLight);
+
+    // Initialize raycaster for interaction
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     // Handle mouse movement
     const handleMouseMove = (event) => {
-      // Normalize mouse position
       const rect = renderer.domElement.getBoundingClientRect();
+      
+      // Convert mouse position to normalized device coordinates
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      // Update raycaster
       raycaster.setFromCamera(mouse, camera);
 
       // Check for intersections with project markers
@@ -179,33 +160,27 @@ const Moon3D = ({ size = 350, projects = [] }) => {
 
       if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
+        const hoveredProject = intersectedObject.userData.project;
+        
+        // Set the selected project and highlight the marker
+        setSelectedProject(hoveredProject);
+        setHoveredIndex(intersectedObject.userData.index);
+        
+        // Gradually slow down the rotation
+        targetRotationSpeedRef.current = 0;
         document.body.style.cursor = 'pointer';
-
-        // Highlight the selected marker
-        projectMarkers.forEach(item => {
-          if (item.marker === intersectedObject) {
-            item.marker.material.color.set(0x00ffff);
-            item.glow.material.color.set(0x00ffff);
-          } else {
-            item.marker.material.color.set(0xffffff);
-            item.glow.material.color.set(0xffffff);
-          }
-        });
       } else {
+        // Gradually return to normal rotation speed if not hovering over a marker
+        targetRotationSpeedRef.current = 0.005;
         document.body.style.cursor = 'default';
-
-        // Reset all markers
-        projectMarkers.forEach(item => {
-          item.marker.material.color.set(0xffffff);
-          item.glow.material.color.set(0xffffff);
-        });
+        setHoveredIndex(null);
       }
     };
 
-    // Handle click - now shows/hides project card
+    // Handle click event (retain this for mobile compatibility)
     const handleClick = (event) => {
-      // Update raycaster
       const rect = renderer.domElement.getBoundingClientRect();
+      
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
@@ -219,14 +194,9 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
         const clickedProject = intersectedObject.userData.project;
-
-        // Toggle project card visibility
-        setSelectedProject(prevProject => 
-          prevProject && prevProject.name === clickedProject.name ? null : clickedProject
-        );
-      } else {
-        // Close project card if clicking elsewhere
-        setSelectedProject(null);
+        
+        // Set the selected project
+        setSelectedProject(clickedProject);
       }
     };
 
@@ -234,12 +204,15 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     renderer.domElement.addEventListener('mousemove', handleMouseMove);
     renderer.domElement.addEventListener('click', handleClick);
 
-    // Animation loop - faster rotation
+    // Animation loop with variable rotation speed
     const animate = () => {
       animationRef.current = requestAnimationFrame(animate);
 
-      // Rotate the moon group faster (moon and attached markers)
-      moonGroup.rotation.y += 0.005; // Increased rotation speed for more frequent marker visibility
+      // Smoothly interpolate between current and target rotation speeds
+      rotationSpeedRef.current += (targetRotationSpeedRef.current - rotationSpeedRef.current) * 0.05;
+      
+      // Rotate the moon group at the current speed
+      moonGroup.rotation.y += rotationSpeedRef.current;
 
       // Update light positions and pulse effects
       projectMarkers.forEach((item, index) => {
@@ -253,11 +226,30 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         // Pulse effect
         const time = Date.now() * 0.001;
         const pulse = Math.sin(time + index) * 0.5 + 0.5;
-        item.pulse.intensity = pulse * 1.5; // Stronger pulse
-
-        // Scale the glow with the pulse
-        if (item.glow) {
-          item.glow.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
+        
+        // If this marker is highlighted (project card hover or marker hover)
+        if (hoveredIndex === index) {
+          item.pulse.intensity = pulse * 2.5; // Stronger pulse for highlighted marker
+          
+          // Scale the glow effect more dramatically when highlighted
+          if (item.glow) {
+            item.glow.scale.set(1 + pulse * 0.6, 1 + pulse * 0.6, 1 + pulse * 0.6);
+            item.glow.material.opacity = 0.6;
+          }
+          
+          // Make the marker itself pulse
+          item.marker.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
+        } else {
+          item.pulse.intensity = pulse * 1.5; // Normal pulse
+          
+          // Normal glow animation
+          if (item.glow) {
+            item.glow.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
+            item.glow.material.opacity = 0.3;
+          }
+          
+          // Reset marker scale
+          item.marker.scale.set(1, 1, 1);
         }
       });
 
@@ -285,6 +277,7 @@ const Moon3D = ({ size = 350, projects = [] }) => {
       geometry.dispose();
       material.dispose();
       moonTexture.dispose();
+      moonNormalMap.dispose();
 
       // Dispose of marker resources
       projectMarkers.forEach(({ marker, glow }) => {
@@ -300,34 +293,52 @@ const Moon3D = ({ size = 350, projects = [] }) => {
     };
   }, [size, projects]); // Remove activeProject from dependencies to prevent re-rendering
 
+  // Handle project card hover to highlight the corresponding marker
+  const handleProjectCardHover = (index) => {
+    setHoveredIndex(index);
+  };
+  
+  // Handle project card mouse leave
+  const handleProjectCardLeave = () => {
+    setHoveredIndex(null);
+  };
+
   return (
     <div className={styles.container}>
       <div ref={mountRef} className={styles.moon3D} style={{ width: size, height: size }} />
 
-      {/* Project info card on click */}
-      {selectedProject && (
-        <div className={styles.projectCard}>
-          <h3>{selectedProject.name}</h3>
-          <p>{selectedProject.description}</p>
-          <div className={styles.projectTags}>
-            {selectedProject.tags && selectedProject.tags.map((tag, index) => (
-              <span key={index} className={styles.tag}>{tag}</span>
-            ))}
-          </div>
-          
-          {/* Use the 'link' property that exists in the project data */}
-          {selectedProject.link && (
-            <a 
-              href={selectedProject.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={styles.projectLink}
-            >
-              View Project
-            </a>
-          )}
-        </div>
-      )}
+      {/* Project info card - Always visible */}
+      <div 
+        className={styles.projectCard}
+        onMouseEnter={() => selectedProject && handleProjectCardHover(projects.findIndex(p => p.name === selectedProject.name))}
+        onMouseLeave={handleProjectCardLeave}
+      >
+        {selectedProject ? (
+          <>
+            <h3>{selectedProject.name}</h3>
+            <p>{selectedProject.description}</p>
+            <div className={styles.projectTags}>
+              {selectedProject.tags && selectedProject.tags.map((tag, index) => (
+                <span key={index} className={styles.tag}>{tag}</span>
+              ))}
+            </div>
+            
+            {/* Use the 'link' property that exists in the project data */}
+            {selectedProject.link && (
+              <a 
+                href={selectedProject.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={styles.projectLink}
+              >
+                View Project
+              </a>
+            )}
+          </>
+        ) : (
+          <p className={styles.noProject}>Hover over a marker to see project details</p>
+        )}
+      </div>
     </div>
   );
 };

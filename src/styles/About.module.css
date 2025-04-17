@@ -1,6 +1,7 @@
 @import url('./variables.css');
 
 .about {
+  margin-top: 10rem;
   margin-bottom: var(--space-lg);
 }
 
