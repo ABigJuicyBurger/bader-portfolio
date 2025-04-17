@@ -104,53 +104,54 @@ const Moon3D = ({ size = 350, projects = [] }) => {
 
     // Position markers around the entire moon to increase visibility frequency
     if (projects.length > 0) {
+      // Calculate positions for markers distributed evenly around the moon
+      const positions = [];
+      const count = Math.max(12, projects.length * 2); // Use more markers for better coverage
+
+      // Create positions evenly around the moon with some bias toward the front
+      for (let i = 0; i < count; i++) {
+        // Distribute markers evenly around the full 360 degrees
+        const angle = (i / count) * Math.PI * 2;
+
+        // Bias markers toward the front of the moon
+        const x = 2.5 * Math.cos(angle);
+        const y = (Math.random() - 0.5) * 2; // Random Y position
+        const z = 2.5 * Math.sin(angle);
+
+        positions.push(new THREE.Vector3(x, y, z));
+      }
+
+      // Create markers for the actual projects
       projects.forEach((project, index) => {
-        // Distribute the markers evenly around the moon
-        // Convert index to angles to position markers around the spherical surface
-        const phi = Math.acos(-1 + (2 * index) / projects.length);
-        const theta = Math.sqrt(projects.length * Math.PI) * phi;
-        
-        // Convert spherical coordinates to Cartesian (x, y, z) coordinates
-        const x = 2.5 * Math.sin(phi) * Math.cos(theta);
-        const y = 2.5 * Math.sin(phi) * Math.sin(theta);
-        const z = 2.5 * Math.cos(phi);
-        
-        // Check visibility, north hemisphere bias for increased visibility
-        const position = new THREE.Vector3(x, Math.abs(y), z);
-        
-        createProjectMarker(position, project, index);
+        // Pick a position from our calculated positions
+        const posIndex = index % positions.length;
+        createProjectMarker(positions[posIndex], project, index);
       });
     }
 
-    // Store reference to projectMarkers array
+    // Store for raycasting
     projectMarkersRef.current = projectMarkers;
 
-    // Add ambient light
-    const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+    // Add lights
+    const ambientLight = new THREE.AmbientLight(0x404040, 1);
     scene.add(ambientLight);
 
-    // Add directional light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
+    directionalLight.position.set(5, 3, 5);
     scene.add(directionalLight);
 
-    // Add point light for dramatic effect
-    const pointLight = new THREE.PointLight(0x00ffff, 1, 10);
-    pointLight.position.set(-5, 5, 5);
-    scene.add(pointLight);
-
-    // Initialize raycaster for interaction
+    // Setup raycaster for interaction
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     // Handle mouse movement
     const handleMouseMove = (event) => {
+      // Normalize mouse position
       const rect = renderer.domElement.getBoundingClientRect();
-      
-      // Convert mouse position to normalized device coordinates
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+      // Update raycaster
       raycaster.setFromCamera(mouse, camera);
 
       // Check for intersections with project markers
@@ -162,22 +163,39 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         const intersectedObject = intersects[0].object;
         const hoveredProject = intersectedObject.userData.project;
         
-        // Set the selected project and highlight the marker
+        // Set the selected project and track hovered index
         setSelectedProject(hoveredProject);
         setHoveredIndex(intersectedObject.userData.index);
         
         // Gradually slow down the rotation
         targetRotationSpeedRef.current = 0;
         document.body.style.cursor = 'pointer';
+
+        // Directly set marker colors - key improvement from original code
+        projectMarkers.forEach(item => {
+          if (item.marker === intersectedObject) {
+            item.marker.material.color.set(0x00ffff);
+            item.glow.material.color.set(0x00ffff);
+          } else {
+            item.marker.material.color.set(0xffffff);
+            item.glow.material.color.set(0xffffff);
+          }
+        });
       } else {
         // Gradually return to normal rotation speed if not hovering over a marker
         targetRotationSpeedRef.current = 0.005;
         document.body.style.cursor = 'default';
         setHoveredIndex(null);
+        
+        // Reset all markers to white
+        projectMarkers.forEach(item => {
+          item.marker.material.color.set(0xffffff);
+          item.glow.material.color.set(0xffffff);
+        });
       }
     };
 
-    // Handle click event (retain this for mobile compatibility)
+    // Handle click for mobile compatibility
     const handleClick = (event) => {
       const rect = renderer.domElement.getBoundingClientRect();
       
@@ -197,6 +215,17 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         
         // Set the selected project
         setSelectedProject(clickedProject);
+        
+        // Highlight the clicked marker
+        projectMarkers.forEach(item => {
+          if (item.marker === intersectedObject) {
+            item.marker.material.color.set(0x00ffff);
+            item.glow.material.color.set(0x00ffff);
+          } else {
+            item.marker.material.color.set(0xffffff);
+            item.glow.material.color.set(0xffffff);
+          }
+        });
       }
     };
 
@@ -227,14 +256,13 @@ const Moon3D = ({ size = 350, projects = [] }) => {
         const time = Date.now() * 0.001;
         const pulse = Math.sin(time + index) * 0.5 + 0.5;
         
-        // If this marker is highlighted (project card hover or marker hover)
-        if (hoveredIndex === index) {
+        // Apply pulse intensity based on whether the marker is highlighted
+        if (index === hoveredIndex) {
           item.pulse.intensity = pulse * 2.5; // Stronger pulse for highlighted marker
           
           // Scale the glow effect more dramatically when highlighted
           if (item.glow) {
             item.glow.scale.set(1 + pulse * 0.6, 1 + pulse * 0.6, 1 + pulse * 0.6);
-            item.glow.material.opacity = 0.6;
           }
           
           // Make the marker itself pulse
@@ -245,7 +273,6 @@ const Moon3D = ({ size = 350, projects = [] }) => {
           // Normal glow animation
           if (item.glow) {
             item.glow.scale.set(1 + pulse * 0.3, 1 + pulse * 0.3, 1 + pulse * 0.3);
-            item.glow.material.opacity = 0.3;
           }
           
           // Reset marker scale
@@ -291,16 +318,39 @@ const Moon3D = ({ size = 350, projects = [] }) => {
 
       renderer.dispose();
     };
-  }, [size, projects]); // Remove activeProject from dependencies to prevent re-rendering
+  }, [size, projects]); // Remove hoveredIndex from dependencies to prevent re-rendering
 
   // Handle project card hover to highlight the corresponding marker
   const handleProjectCardHover = (index) => {
-    setHoveredIndex(index);
+    if (index >= 0) {
+      setHoveredIndex(index);
+      
+      // Direct update of marker colors when hovering over project card
+      if (projectMarkersRef.current && projectMarkersRef.current.length > 0) {
+        projectMarkersRef.current.forEach((item, i) => {
+          if (i === index) {
+            item.marker.material.color.set(0x00ffff);
+            item.glow.material.color.set(0x00ffff);
+          } else {
+            item.marker.material.color.set(0xffffff);
+            item.glow.material.color.set(0xffffff);
+          }
+        });
+      }
+    }
   };
   
   // Handle project card mouse leave
   const handleProjectCardLeave = () => {
     setHoveredIndex(null);
+    
+    // Reset all marker colors when mouse leaves project card
+    if (projectMarkersRef.current && projectMarkersRef.current.length > 0) {
+      projectMarkersRef.current.forEach(item => {
+        item.marker.material.color.set(0xffffff);
+        item.glow.material.color.set(0xffffff);
+      });
+    }
   };
 
   return (
