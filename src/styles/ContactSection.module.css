@@ -170,6 +170,80 @@
   margin-right: 5px;
 }
 
+/* Animation for "With Me" text */
+@keyframes spaceLetterAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) rotate(10deg);
+    filter: blur(10px);
+    color: rgba(0, 255, 255, 0);
+    text-shadow: 0 0 0px rgba(0, 255, 255, 0);
+  }
+  20% {
+    opacity: 0.5;
+    color: rgba(0, 255, 255, 0.7);
+  }
+  40% {
+    transform: translateY(-5px) rotate(-5deg);
+    filter: blur(5px);
+  }
+  60% {
+    transform: translateY(3px) rotate(2deg);
+    filter: blur(2px);
+  }
+  80% {
+    color: rgba(0, 255, 255, 0.9);
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+    filter: blur(0);
+    color: var(--color-nebula-accent);
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+  }
+}
+
+.animateText {
+  display: inline-block;
+  animation: spaceLetterAnimation 2.5s forwards;
+  position: relative;
+}
+
+/* Star burst effect */
+.animateText::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0;
+  animation: starBurst 2s forwards 0.5s;
+}
+
+@keyframes starBurst {
+  0% {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  50% {
+    opacity: 1;
+    width: 150px;
+    height: 150px;
+  }
+  100% {
+    opacity: 0;
+    width: 300px;
+    height: 300px;
+  }
+}
+
 /* Responsive styling */
 @media (max-width: 768px) {
   .linksContainer {
