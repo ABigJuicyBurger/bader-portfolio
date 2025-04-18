@@ -36,3 +36,20 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-nebula-accent);
 }
+
+.loading-section {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-nebula-accent);
+  font-size: 1.5rem;
+  background-color: var(--color-space-black);
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

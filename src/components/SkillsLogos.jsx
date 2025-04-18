@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import styles from '../styles/SkillsLogos.module.css';
 
 const SkillsLogos = () => {
@@ -66,6 +66,9 @@ const SkillsLogos = () => {
                 src={skill.icon} 
                 alt={`${skill.name} logo`} 
                 className={styles.skillIcon} 
+                loading="lazy"
+                width="40"
+                height="40"
               />
               <div className={styles.orbitRing}></div>
             </div>
@@ -77,4 +80,4 @@ const SkillsLogos = () => {
   );
 };
 
-export default SkillsLogos;
+export default memo(SkillsLogos);

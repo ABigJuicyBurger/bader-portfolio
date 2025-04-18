@@ -42,7 +42,7 @@ const ContactSection = () => {
         
         <div className={styles.linksContainer}>
           <a 
-            href="mailto:bader.muhssin@email.com" 
+            href="mailto:muhssinbader@gmail.com" 
             className={styles.contactLink}
             aria-label="Email"
           >

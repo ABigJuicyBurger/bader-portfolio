@@ -19,7 +19,7 @@ const projects = [
   },
   {
     name: 'Shop.AI',
-    description: 'A smart e-commerce platform with features similar to Shopify.',
+    description: 'A not so smart e-commerce platform.',
     link: 'https://shopai-react.netlify.app/',
     tags: ['React', 'TypeScript', 'JavaScript'],
   },
