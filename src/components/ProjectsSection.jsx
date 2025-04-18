@@ -7,27 +7,27 @@ import SkillsLogos from './SkillsLogos';
 const projects = [
   {
     name: 'JobCompass',
-    description: 'AI-powered job search assistant with personalized recommendations.',
-    link: 'https://github.com/yourusername/jobcompass',
-    tags: ['React', 'AI', 'Node.js'],
+    description: 'A smart job search platform integrating features similar to Rent Faster and Indeed.',
+    link: 'http://jobcompass.duckdns.org/',
+    tags: ['React', 'Node.js', 'TypeScript'],
   },
   {
-    name: 'Stellar Weather',
-    description: 'Interactive weather visualization app with astronomical data.',
-    link: 'https://github.com/yourusername/stellar-weather',
+    name: 'Admin Dashboard',
+    description: 'Dashboard of all projects I\'ve completed through The Odin Project.',
+    link: 'https://abigjuicyburger.github.io/Admin-Dashboard',
     tags: ['JavaScript', 'APIs', 'Canvas'],
   },
   {
-    name: 'Cosmic Blog',
-    description: 'Space-themed blog platform with rich content management.',
-    link: 'https://github.com/yourusername/cosmic-blog',
-    tags: ['React', 'MongoDB', 'Express'],
+    name: 'Shop.AI',
+    description: 'A smart e-commerce platform with features similar to Shopify.',
+    link: 'https://shopai-react.netlify.app/',
+    tags: ['React', 'TypeScript', 'JavaScript'],
   },
   {
-    name: 'Orbital',
-    description: 'Physics-based space orbit simulation and visualization.',
-    link: 'https://github.com/yourusername/orbital',
-    tags: ['Three.js', 'Physics', 'WebGL'],
+    name: 'Restaurant Page',
+    description: 'A restaurant landing page, flexing my Webpack and npm skills.',
+    link: 'https://abigjuicyburger.github.io/RestaurantPage',
+    tags: ['JavaScript', 'Webpack', 'npm'],
   },
 ];
 

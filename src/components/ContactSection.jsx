@@ -23,7 +23,7 @@ const ContactSection = () => (
         </a>
         
         <a 
-          href="https://github.com/your-github" 
+          href="https://github.com/ABigJuicyBurger" 
           target="_blank" 
           rel="noopener noreferrer" 
           className={styles.contactLink}
@@ -38,7 +38,7 @@ const ContactSection = () => (
         </a>
         
         <a 
-          href="https://linkedin.com/in/your-linkedin" 
+          href="https://www.linkedin.com/in/badermuhssin/" 
           target="_blank" 
           rel="noopener noreferrer" 
           className={styles.contactLink}
