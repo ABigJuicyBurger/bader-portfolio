@@ -38,6 +38,10 @@
   margin-bottom: var(--space-sm);
   position: relative;
   transition: transform 0.3s ease;
+  /* Make items tappable */
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 .skillItem:hover {
@@ -94,6 +98,101 @@
   color: var(--color-starlight);
 }
 
+/* Tooltip styling */
+.skillTooltip {
+  position: absolute;
+  background: rgba(10, 15, 25, 0.9);
+  color: var(--color-starlight);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+  transform: translateY(10px);
+  z-index: 10;
+  bottom: -40px;
+  width: 100px;
+  text-align: center;
+  left: 50%;
+  margin-left: -50px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  /* Fix any z-index or position issues that might cause flickering */
+  will-change: opacity, transform, visibility;
+}
+
+.skillTooltip::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  margin-left: -4px;
+  width: 8px;
+  height: 8px;
+  background: rgba(10, 15, 25, 0.9);
+  transform: rotate(45deg);
+  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  border-left: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.skillItem:hover .skillTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.skillItem:focus-within .skillTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Customize icon appearance on hover */
+.skillItem:hover .skillIcon {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
+  transform: scale(1.1);
+  transition: filter 0.3s, transform 0.3s;
+}
+
+/* Active state for mobile/tablet touch with longer transitions */
+.skillItem.active .orbitRing {
+  border-color: rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+  animation-play-state: paused;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skillItem.active .skillIcon {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
+  transform: scale(1.1);
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.skillItem.active .skillName {
+  opacity: 1;
+  color: var(--color-nebula-accent);
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Show tooltip on active state for mobile with longer, more stable transition */
+.skillItem.active .skillTooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  /* Add longer delays for mobile to ensure stability */
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s;
+  transition-delay: 0.1s;
+}
+
+/* Remove the category legend styles */
+.categoryLegend,
+.legendItem {
+  display: none;
+}
+
 /* Animation for orbital rings */
 @keyframes rotate {
   0% {
@@ -117,5 +216,43 @@
 @media (max-width: 768px) {
   .skillsGrid {
     justify-content: center;
+    gap: var(--space-sm);
+  }
+  
+  .skillItem {
+    width: 70px;
+    margin-bottom: var(--space-xs);
+    /* Add larger touch target for mobile */
+    padding: 5px;
+  }
+  
+  /* Optimize tooltips for mobile */
+  .skillTooltip {
+    display: block;
+    width: 80px;
+    margin-left: -40px;
+    font-size: 10px;
+    padding: 4px 8px;
+    bottom: -35px;
+    /* Use more opaque background for better readability on mobile */
+    background: rgba(10, 15, 25, 0.95);
+  }
+  
+  /* Completely disable hover effects on touch devices */
+  @media (hover: none) {
+    .skillItem:hover .orbitRing,
+    .skillItem:hover .skillIcon,
+    .skillItem:hover .skillName,
+    .skillItem:hover .skillTooltip {
+      /* Cancel hover styles */
+      transition: none;
+      transform: none;
+      opacity: inherit;
+      visibility: inherit;
+      filter: inherit;
+      border-color: inherit;
+      box-shadow: inherit;
+      color: inherit;
+    }
   }
 }

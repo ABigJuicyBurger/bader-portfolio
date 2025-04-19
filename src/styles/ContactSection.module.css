@@ -68,6 +68,77 @@
   border-radius: 2px;
 }
 
+.highlight:hover {
+  cursor: pointer;
+  animation: none; /* Override the initial animation if it's still active */
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+  transform: scale(1.08);
+  text-shadow: 
+    0 0 10px rgba(0, 255, 255, 0.9),
+    0 0 20px rgba(0, 255, 255, 0.7),
+    0 0 30px rgba(0, 255, 255, 0.5);
+}
+
+.highlight:hover::after {
+  animation: cosmicPulse 1.5s infinite alternate ease-in-out;
+  height: 4px;
+  bottom: -7px;
+  box-shadow: 0 0 12px 3px rgba(0, 255, 255, 0.8);
+}
+
+.highlight:hover::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: 150%;
+  top: -25%;
+  left: -10%;
+  background-image: 
+    radial-gradient(2px 2px at 10% 30%, var(--color-nebula-accent), transparent),
+    radial-gradient(2px 2px at 30% 70%, var(--color-nebula-accent), transparent),
+    radial-gradient(3px 3px at 60% 20%, var(--color-nebula-accent), transparent),
+    radial-gradient(2px 2px at 80% 50%, var(--color-nebula-accent), transparent);
+  opacity: 0;
+  animation: fadeInStars 0.3s forwards, floatStars 4s infinite alternate ease-in-out;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes cosmicPulse {
+  0% {
+    opacity: 0.7;
+    transform: scaleX(0.9) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.1) translateY(-2px);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scaleX(1) translateY(0);
+  }
+}
+
+@keyframes fadeInStars {
+  from { opacity: 0; }
+  to { opacity: 0.8; }
+}
+
+@keyframes floatStars {
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  33% {
+    transform: rotate(1deg) translateY(-3px);
+  }
+  66% {
+    transform: rotate(-1deg) translateY(2px);
+  }
+  100% {
+    transform: rotate(0.5deg) translateY(-2px);
+  }
+}
+
 .subtitle {
   color: var(--color-stardust);
   font-size: var(--font-size-subtitle);
