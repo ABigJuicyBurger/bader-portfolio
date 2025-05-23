@@ -9,7 +9,7 @@ const projects = [
     name: "JobCompass",
     description:
       "A smart job search platform integrating features similar to Rent Faster and Indeed.",
-    link: "http://jobcompass.duckdns.org/",
+    link: "https://jobcompass-demo.netlify.app/",
     tags: ["React", "Node.js", "TypeScript"],
   },
   {
