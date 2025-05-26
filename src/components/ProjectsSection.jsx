@@ -20,19 +20,6 @@ const projects = [
     tags: ["JavaScript", "APIs", "Canvas"],
   },
   {
-    name: "Shop.AI",
-    description: "A not so smart e-commerce platform.",
-    link: "https://shopai-react.netlify.app/",
-    tags: ["React", "TypeScript", "JavaScript"],
-  },
-  {
-    name: "Restaurant Page",
-    description:
-      "A restaurant landing page, flexing my Webpack and npm skills.",
-    link: "https://abigjuicyburger.github.io/RestaurantPage",
-    tags: ["JavaScript", "Webpack", "npm"],
-  },
-  {
     name: "AI vs Jobs",
     description: `Used Python, to model AI adoption vs. U.S. unemployment, showing AI's role in creating specialized tech jobs.`,
     link: "https://abigjuicyburger.github.io/data-science-project-clean/ai_unemployment_visualization.html",
