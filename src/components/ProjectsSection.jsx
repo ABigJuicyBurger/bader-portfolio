@@ -6,11 +6,11 @@ import SkillsLogos from "./SkillsLogos";
 
 const projects = [
   {
-    name: "JobCompass",
+    name: "MindMap",
     description:
-      "A smart job search platform integrating features similar to Rent Faster and Indeed.",
-    link: "https://jobcompass-demo.netlify.app/",
-    tags: ["React", "Node.js", "TypeScript"],
+      "Flashcards but fancy",
+    link: http://mind-map-teal-three.vercel.app/
+     tags: ["React", "Three.js", ],
   },
   {
     name: "Admin Dashboard",
