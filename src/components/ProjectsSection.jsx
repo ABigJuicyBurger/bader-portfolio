@@ -9,7 +9,7 @@ const projects = [
     name: "MindMap",
     description:
       "Flashcards but fancy",
-    link: http://mind-map-teal-three.vercel.app/
+    link: "http://mind-map-teal-three.vercel.app/",
      tags: ["React", "Three.js", ],
   },
   {
